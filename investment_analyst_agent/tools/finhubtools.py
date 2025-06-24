@@ -119,7 +119,7 @@ def sec_filings(symbol: str, start_date: str, end_date: str) -> dict:
     Returns:
         dict: status and result or error msg.
     """
-
+    print("sec_filings called")
     secfilings = finnhub_client.filings(symbol, start_date, end_date)
     parsed_filings = []
     for filing in secfilings:
@@ -128,6 +128,7 @@ def sec_filings(symbol: str, start_date: str, end_date: str) -> dict:
                                    "symbol": symbol, 
                                    "filedDate": filing['filedDate'],
                                    "report": helpercode.get_text_from_url(filing['reportUrl'])})
+            print(filing['reportUrl'])
 
 
     return {
