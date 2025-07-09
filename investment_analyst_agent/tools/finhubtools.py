@@ -44,7 +44,7 @@ def company_profile(symbol: str) -> dict:
     """Retrieves the company profile for the symbol specified
 
     Args:
-        symbol (str): The stock symbol of the company being looked up for financial news.
+        symbol (str): The stock symbol of the company being looked up for Company Profile.
 
     Returns:
         dict: status and result or error msg.
@@ -60,7 +60,7 @@ def company_basic_financials(symbol: str) -> dict:
     """Retrieves the company financials for the symbol specified
 
     Args:
-        symbol (str): The stock symbol of the company being looked up for financial news.
+        symbol (str): The stock symbol of the company being looked up for company basic financials.
 
     Returns:
         dict: status and result or error msg.
@@ -76,7 +76,7 @@ def insider_sentiment(symbol: str, start_date: str, end_date: str) -> dict:
     """Retrieves the insider sentiment for the symbol specified
 
     Args:
-        symbol (str): The stock symbol of the company being looked up for financial news.
+        symbol (str): The stock symbol of the company being looked up for Insider Sentiment.
         start_date (str): The date from which to start search for news.
         end_date (str): The date from whcih to end searching for news.
 
@@ -90,13 +90,11 @@ def insider_sentiment(symbol: str, start_date: str, end_date: str) -> dict:
         ),
     }
 
-def financials_reported(symbol: str, start_date: str, end_date: str) -> dict:
+def financials_reported(symbol: str) -> dict:
     """Retrieves the financials reported for the symbol specified
 
     Args:
-        symbol (str): The stock symbol of the company being looked up for financial news.
-        start_date (str): The date from which to start search for news.
-        end_date (str): The date from whcih to end searching for news.
+        symbol (str): The stock symbol of the company being looked up for financials reported.
 
     Returns:
         dict: status and result or error msg.
@@ -104,15 +102,15 @@ def financials_reported(symbol: str, start_date: str, end_date: str) -> dict:
     return {
         "status": "success",
         "report": (
-            finnhub_client.financials_reported(symbol, start_date, end_date)
-        ),
+            finnhub_client.financials_reported(symbol)
+        )
     }
 
 def sec_filings(symbol: str, start_date: str, end_date: str) -> dict:
     """Retrieves the sec filings for the symbol specified
 
     Args:
-        symbol (str): The stock symbol of the company being looked up for financial news.
+        symbol (str): The stock symbol of the company being looked up for Sec Filings.
         start_date (str): The date from which to start search for news.
         end_date (str): The date from whcih to end searching for news.
 
