@@ -81,6 +81,8 @@ symbol_lookup_agent = Agent(
         "You are a symbol lookup agent. Use the symbol_lookup tool to get a symbol from a company name"
         "use the symbol_lookup tool to get a stock symbol from a company name"
         "the symbol will be needed for subsiquent sub agents"
+        "if you retrieive multiple symbols, make an assumption about what is the most likely symbol"
+        "return the symbol in the response"
     ),
     tools=[symbol_lookup],
     output_key="symbol_lookup_result"
@@ -98,8 +100,9 @@ company_news_agent = Agent(
         "use the company_news tool to get the company news for the company"
         "The news can be used as part of analysing investment stratagies"
         "Output a detaild summary of thge finding"
+        "Use the get_current_date tool to get the date for the news"
     ),
-    tools=[company_news],
+    tools=[get_current_date, company_news],
     output_key="company_news_result"
 )
 
@@ -183,8 +186,9 @@ insider_sentiment_agent = Agent(
         "use the insider_sentiment tool to get the insider sentiment for the company"
         "The insider sentiment can be used as part of analysing investment stratagies"
         "Output a detaild summary of thge finding"
+        "Use the get_current_date tool to get the date"
     ),
-    tools=[insider_sentiment],
+    tools=[get_current_date,insider_sentiment],
     output_key="insider_sentiment_result"
 )
 
@@ -237,11 +241,11 @@ report_creation_agent = Agent(
     )
 )
 
-data_retrival_agent = ParallelAgent(
-    name="data_retrival_agent",
+data_retrieval_agent = ParallelAgent(
+    name="data_retrieval_agent",
     # model="gemini-2.5-flash",
     description=(
-        "You are an agent that helps a financial assist retreive infor about a company or stock"
+        "You are an agent that helps a financial analyst to retreive info about a company or stock"
     ),
     # instruction=(
     #     "You are a financal assistant agent that uses all the sub agents to retreive info about a company or a stock"
@@ -256,6 +260,13 @@ data_retrival_agent = ParallelAgent(
 )
 
 
+sqeuential_agent = SequentialAgent(
+    name="sqeuential_agent",
+    description=(
+        "you are the agent that runs the process for collecting the data and creating the report"
+    ),
+    sub_agents=[symbol_lookup_agent, data_retrieval_agent, report_creation_agent]
+)
 
 
 root_agent = Agent(
@@ -287,18 +298,23 @@ root_agent = Agent(
 
                         **2. Date Handling:**
 
-                        *   **Current Date Determination:** Use the `current_date` function to obtain the current date at the beginning of each analysis. This date is critical for subsequent time-sensitive operations.
+                        *   **Current Date Determination:** Use the `get_current_date` function to obtain the current date at the beginning of each analysis. This date is critical for subsequent time-sensitive operations.
                         *   **Default Year Range:** If a function call requires a date range and the user has not supplied one, calculate the start and end dates for the *current year* using the date obtained from `current_date`. Use these as the default start and end dates in the relevant function calls.
+                        *   Make sure you get the date and calculate the start and end date based on the current date if the prompt asks.
+                        If the prompt already mentions a start and end date then use it.
+                        Do not generate code to handle date, use the the get_current_date tool to do the date calculation.
 
                         **3. Analysis Components:**
 
+                        Use the data_retrieval_agent to collect data for the following sections
+
                         *   **Comprehensive Report:** Your report should be comprehensive, detailed and contain the following sections:
-                            *   **Company Profile:**  Include a detailed overview of the company, its industry, and its business model. Use company_profile_agent to get the company profile.
-                            *   **Company News:** Summarize the latest significant news impacting the company. Make it detailed. Use company_news_agent to get the company news.
-                            *   **Basic Financials:** Present key financial metrics and ratios for the company, covering recent periods (using current year as default period). Use company_basic_financials_agent and financials_reported_agent to get the company basic financials.
-                            *   **Peer Analysis:** Identify and analyze the company's key competitors, comparing their financials and market performance (current year default). Use peer_analysis_agent to get the peer analysis.
-                            *   **Insider Sentiment:**  Report on insider trading activity and overall sentiment expressed by company insiders. Use insider_sentiment_agent to get the insider sentiment.
-                            *   **SEC Filings:**  Provide an overview of the company's recent SEC filings, highlighting any significant disclosures and a summary of the findings. Make it detailed. Use sec_filings_agent to get the sec filings.
+                            *   **Company Profile:**  Include a detailed overview of the company, its industry, and its business model. 
+                            *   **Company News:** Summarize the latest significant news impacting the company. Make it detailed. 
+                            *   **Basic Financials:** Present key financial metrics and ratios for the company, covering recent periods (using current year as default period). 
+                            *   **Peer Analysis:** Identify and analyze the company's key competitors, comparing their financials and market performance (current year default).
+                            *   **Insider Sentiment:**  Report on insider trading activity and overall sentiment expressed by company insiders. 
+                            *   **SEC Filings:**  Provide an overview of the company's recent SEC filings, highlighting any significant disclosures and a summary of the findings. Make it detailed.
 
 
                         **4. Data Handling and Error Management:**
@@ -313,19 +329,23 @@ root_agent = Agent(
 
                         **Example Workflow (Implicit):**
 
-                        1.  Get the current date using `current_date`.
+                        1.  Get the current date using `get_current_date`.
                         2.  Use `symbol_lookup_agent` to identify the primary symbol for the company provided by the user.
                         3.  If no symbol is found, end the process and report back.
                         4.  Calculate the start and end date by using the result of the get_current_date tool.
-                        5.  Call the relevant sub agents to retrieve the company_profile_agent, company_news_agent, company_basic_financials_agent, insider_sentiment_agent, financials_reported_agent, and sec_filings_agent, news, financials, insider sentiment, and SEC filings. Use the current year start and end date when required, or the date specified by the user.
+                        5.  Call the data_retrieval_agent retrieve the company_profile_agent, company_news_agent, company_basic_financials_agent, insider_sentiment_agent, financials_reported_agent, and sec_filings_agent, news, financials, insider sentiment, and SEC filings. Use the current year start and end date when required, or the date specified by the user.
                         6.  Assemble a detailed and insightful report that addresses each of the sections mentioned above using report_creation_agent.
-                        """
+                        
                         "Make sure you run all the sub agents" 
                         "Use the report_creation_agent to create a report on the investment and return it"
-                        "in order to analyse a company use the data_retrival_agent"
-                        "report_creation_agent should be called right at the end of the analysis"
+                        "in order to analyse a company use the data_retrieval_agent"
+                        "report_creation_agent should be called right at the end of the analysis to create the final report."
+                        Always call report_creation_agent at the end of the analysis.
+
+                        """
 
     ),
     tools=[get_current_date],
-    sub_agents=[symbol_lookup_agent, data_retrival_agent, report_creation_agent]
+    # sub_agents=[symbol_lookup_agent, data_retrieval_agent, report_creation_agent]
+    sub_agents=[sqeuential_agent]
 )
