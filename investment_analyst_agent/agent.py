@@ -206,8 +206,8 @@ data_retrieval_agent = ParallelAgent(
 )
 
 
-sqeuential_agent = SequentialAgent(
-    name="sqeuential_agent",
+sequential_agent = SequentialAgent(
+    name="sequential_agent",
     description=(
         "you are the agent that runs the process for collecting the data and creating the report"
     ),
@@ -293,5 +293,5 @@ root_agent = Agent(
     ),
     tools=[get_current_date],
     # sub_agents=[symbol_lookup_agent, data_retrieval_agent, report_creation_agent]
-    sub_agents=[sqeuential_agent]
+    sub_agents=[sequential_agent]
 )
